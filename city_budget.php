@@ -51,6 +51,11 @@ while (false !== $pos) {
 
             exec("xlsx2csv {$xlsCache} {$targetFolder}/{$pageTitle}_{$fileTitle}.csv");
 
+            if (!file_exists($targetFolder . '/src')) {
+                mkdir($targetFolder . '/src', 0777, true);
+            }
+            copy($xlsCache, "{$targetFolder}/src/{$pageTitle}_{$fileTitle}.xls");
+
             $fPos = strpos($page, 'public/Attachment/', $fPos + 1);
         }
     }
