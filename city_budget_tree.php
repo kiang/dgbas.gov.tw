@@ -10,6 +10,7 @@ foreach (glob($sourceFolder . '/*.json') AS $jsonFile) {
     $baseName = basename($jsonFile);
     $targetName = 1911 + intval(substr($baseName, 0, strpos($baseName, '年')));
     $data = json_decode(file_get_contents($jsonFile), true);
+    $accountData = array();
     $treeData = new stdClass();
     $treeData->name = $targetName;
     $treeData->children = array();
@@ -29,6 +30,10 @@ foreach (glob($sourceFolder . '/*.json') AS $jsonFile) {
                     $accountNode->size = $value;
                     $cityNode->children[] = $accountNode;
                     $cityNodeSize += $value;
+                    if (!isset($accountData[$account])) {
+                        $accountData[$account] = array();
+                    }
+                    $accountData[$account][$city] = $value;
                 }
                 $treeData->children[] = $cityNode;
             }
@@ -47,9 +52,32 @@ foreach (glob($sourceFolder . '/*.json') AS $jsonFile) {
                 $accountNode->size = $value;
                 $cityNode->children[] = $accountNode;
                 $cityNodeSize += $value;
+                if (!isset($accountData[$account])) {
+                    $accountData[$account] = array();
+                }
+                $accountData[$account][$city] = $value;
             }
             $treeData->children[] = $cityNode;
         }
     }
+    file_put_contents($targetFolder . '/' . $targetName, json_encode($treeData));
+    $targetName = str_replace('by_city', 'by_account', $targetName);
+    $treeData = new stdClass();
+    $treeData->name = substr($targetName, 0, strpos($targetName, '.'));
+    $treeData->children = array();
+
+    foreach ($accountData AS $account => $lv1) {
+        $accountNode = new stdClass();
+        $accountNode->name = $account;
+        $accountNode->children = array();
+        foreach ($lv1 AS $city => $value) {
+            $cityNode = new stdClass();
+            $cityNode->name = $city;
+            $cityNode->size = $value;
+            $accountNode->children[] = $cityNode;
+        }
+        $treeData->children[] = $accountNode;
+    }
+
     file_put_contents($targetFolder . '/' . $targetName, json_encode($treeData));
 }
